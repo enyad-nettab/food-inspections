@@ -51,3 +51,81 @@ create table nyc_violations (
     critical_flag text
 );
 
+drop view if exists
+    inspection_view;
+
+create view
+    inspection_view
+as select
+    'Chicago' as inspection_authority,
+    cast(license_number as text) as license_id,
+    inspection_id,
+    dba_name,
+    aka_name,
+    address,
+    city,
+    state,
+    zip,
+    inspection_date,
+    inspection_type,
+    null as score,
+    results,
+    latitude,
+    longitude
+from
+    chicago_inspections
+where
+    facility_type = 'Restaurant'
+    
+union all
+
+select
+    'New York' as inspection_authority,
+    camis,
+    inspection_id,
+    dba_name,
+    null,
+    street,
+    'New York',
+    'New York',
+    zip,
+    inspection_date,
+    inspection_type,
+    score,
+    grade,
+    latitude,
+    longitude
+from
+    nyc_inspections;
+    
+drop view if exists
+    violation_view;
+
+create view
+    violation_view
+as select
+    'Chicago' as inspection_authority,
+    inspection_id,
+    cast(violation_code as text) as violation_code,
+    violation_description
+from
+    chicago_violations
+where
+    inspection_id in (
+        select
+            inspection_id
+        from
+            chicago_inspections
+        where
+            facility_type = 'Restaurant'
+    )
+    
+union all
+    
+select
+    'New York' as inspection_authority,
+    inspection_id,
+    violation_code,
+    violation_description
+from
+    nyc_violations;
