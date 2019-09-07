@@ -92,7 +92,13 @@ select
     inspection_date,
     inspection_type,
     score,
-    grade,
+    case
+        when grade is not null then grade
+        when inspection_type != 'Cycle Inspection / Initial Inspection' then grade
+        when score <= 13 then 'A'
+        when score <= 27 then 'B'
+        else 'C'
+    end as results,
     latitude,
     longitude
 from
